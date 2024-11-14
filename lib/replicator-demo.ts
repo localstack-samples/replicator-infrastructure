@@ -18,7 +18,10 @@ export class ReplicatorDemo extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const vpc = new Vpc(this, "Vpc");
+    const vpcId: string | undefined = this.node.tryGetContext("replicator-vpcid");
+    const vpc = Vpc.fromLookup(this, "VPC", {
+      vpcId,
+    });
 
     const lambdaSg = new SecurityGroup(this, "LambdaAccess", {
       vpc,
