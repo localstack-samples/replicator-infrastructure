@@ -4,6 +4,6 @@ mkShell {
   packages = [
     opentofu
     nodejs
+    uv
   ];
 }
-
