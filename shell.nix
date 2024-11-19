@@ -3,7 +3,7 @@ with pkgs;
 mkShell {
   packages = [
     opentofu
-    nodejs_22
+    nodejs
   ];
 }
 
