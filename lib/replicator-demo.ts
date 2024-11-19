@@ -1,14 +1,7 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import { CfnParameter, Stack, StackProps } from "aws-cdk-lib";
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
-import {
-  Port,
-  SecurityGroup,
-  Vpc,
-} from "aws-cdk-lib/aws-ec2";
-import {
-  ContainerImage,
-  CpuArchitecture,
-} from "aws-cdk-lib/aws-ecs";
+import { Port, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
+import { ContainerImage, CpuArchitecture } from "aws-cdk-lib/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -18,9 +11,19 @@ export class ReplicatorDemo extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const vpcId: string | undefined = this.node.tryGetContext("replicator-vpcid");
-    const vpc = Vpc.fromLookup(this, "VPC", {
-      vpcId,
+    // inputs
+    const vpcId = new CfnParameter(this, "VpcId", {
+      type: "String",
+    });
+    const subnetsParameter = new CfnParameter(this, "Subnets", {
+      type: "List<AWS::EC2::Subnet::Id>",
+    });
+
+    // fabricate the VPC
+    const vpc = Vpc.fromVpcAttributes(this, "Vpc", {
+      vpcId: vpcId.valueAsString,
+      availabilityZones: ["us-east-1a"],
+      privateSubnetIds: subnetsParameter.valueAsList,
     });
 
     const lambdaSg = new SecurityGroup(this, "LambdaAccess", {
