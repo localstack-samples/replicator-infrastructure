@@ -40,7 +40,7 @@ module "ecs_cluster" {
               containerPort = local.container_port
               hostPort      = local.container_port
               protocol      = "tcp"
-              app_protocol  = "http2"
+              app_protocol  = "http"
             }
           ]
         }
@@ -85,6 +85,7 @@ module "alb" {
   name = local.name
 
   load_balancer_type = "application"
+  internal           = true
 
   vpc_id  = var.vpc_id
   subnets = var.private_subnets
@@ -100,13 +101,6 @@ module "alb" {
       ip_protocol = "tcp"
       cidr_ipv4   = "0.0.0.0/0"
     }
-    all_https = {
-      from_port   = 443
-      to_port     = 443
-      ip_protocol = "tcp"
-      description = "HTTPS web traffic"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
   }
   security_group_egress_rules = {
     all = {
@@ -119,15 +113,6 @@ module "alb" {
     ex_http = {
       port     = 80
       protocol = "HTTP"
-
-      forward = {
-        target_group_key = "ex_ecs"
-      }
-    }
-    ex_https = {
-      port     = 443
-      protocol = "HTTP"
-
       forward = {
         target_group_key = "ex_ecs"
       }
@@ -168,8 +153,8 @@ module "api_gateway_security_group" {
   description = "API Gateway group for ALB Invoke"
   vpc_id      = var.vpc_id
 
-  # ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules = ["all-all"]
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["all-all"]
 
   egress_rules = ["all-all"]
 }
@@ -188,7 +173,7 @@ module "api_gateway" {
     "ANY /{proxy+}" = {
       integration = {
         connection_type = "VPC_LINK"
-        uri             = module.alb.listeners["ex_https"].arn
+        uri             = module.alb.listeners["ex_http"].arn
         type            = "HTTP_PROXY"
         method          = "ANY"
         vpc_link_key    = "my-vpc"
