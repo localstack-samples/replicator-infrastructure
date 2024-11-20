@@ -25,7 +25,7 @@ export class ReplicatorDemo extends Stack {
       privateSubnetIds: subnetsParameter.valueAsList,
     });
 
-    const lambdaSg = new SecurityGroup(this, "LambdaAccess", {
+    const vpcLinkSg = new SecurityGroup(this, "LambdaAccess", {
       vpc,
       allowAllOutbound: true,
     });
@@ -58,12 +58,12 @@ export class ReplicatorDemo extends Stack {
     );
     const lbSg = backendApp.loadBalancer.connections.securityGroups[0];
     lbSg.addIngressRule(
-      lambdaSg,
+      vpcLinkSg,
       Port.tcp(443),
       "Allow public HTTPS API access to backend service",
     );
     lbSg.addIngressRule(
-      lambdaSg,
+      vpcLinkSg,
       Port.tcp(80),
       "Allow public HTTP API access to backend service",
     );
@@ -76,6 +76,7 @@ export class ReplicatorDemo extends Stack {
         ],
       },
     });
+    vpcLink.addSecurityGroups(vpcLinkSg);
 
     const apigwIntegration = new HttpAlbIntegration("LbIntegration", backendApp.listener, {
       vpcLink,
