@@ -1,10 +1,9 @@
 import { CfnParameter, Stack, StackProps } from "aws-cdk-lib";
-import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
-import { Port, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
+import { HttpApi, HttpMethod, VpcLink } from "aws-cdk-lib/aws-apigatewayv2";
+import { HttpAlbIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
+import { Port, SecurityGroup, Vpc, SubnetFilter } from "aws-cdk-lib/aws-ec2";
 import { ContainerImage, CpuArchitecture } from "aws-cdk-lib/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
-import { Architecture } from "aws-cdk-lib/aws-lambda";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 
 export class ReplicatorDemo extends Stack {
@@ -69,21 +68,25 @@ export class ReplicatorDemo extends Stack {
       "Allow public HTTP API access to backend service",
     );
 
-    const lambda = new NodejsFunction(this, "DemoFunction", {
-      architecture:
-        process.arch === "arm64" ? Architecture.ARM_64 : Architecture.X86_64,
+    const vpcLink = new VpcLink(this, "VpcLink", {
       vpc,
-      environment: {
-        BACKEND_URL: backendApp.loadBalancer.loadBalancerDnsName,
+      subnets: {
+        subnetFilters: [
+          SubnetFilter.byIds(subnetsParameter.valueAsList),
+        ],
       },
-      securityGroups: [lambdaSg],
     });
 
-    // allow access from the Lambda function to the load balancer
+    const apigwIntegration = new HttpAlbIntegration("LbIntegration", backendApp.listener, {
+      vpcLink,
+      method: HttpMethod.ANY,
+    });
 
-    new LambdaRestApi(this, "ApiGateway", {
-      handler: lambda,
-      proxy: true,
+    const httpApi = new HttpApi(this, "Api", {});
+    httpApi.addRoutes({
+      path: "/{proxy+}",
+      methods: [HttpMethod.ANY],
+      integration: apigwIntegration,
     });
   }
 }
