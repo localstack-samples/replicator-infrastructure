@@ -6,6 +6,10 @@ deploy-platform:
 	cd cdk/platform && \
 		AWS_PROFILE=$(AWS_PROFILE) pnpm cdk deploy --require-approval never --outputs-file outputs.json
 
+destroy-platform:
+	cd cdk/platform && \
+		AWS_PROFILE=$(AWS_PROFILE) pnpm cdk destroy --force
+
 replicate:
 	AWS_PROFILE=$(AWS_PROFILE) bash ./replicate_cdk.sh
 
