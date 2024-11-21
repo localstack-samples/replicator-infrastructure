@@ -1,6 +1,7 @@
 AWS_PROFILE ?= ls-sandbox
 LOCAL_AWS_PROFILE ?= local
 AUTO_APPROVE ?= --auto-approve
+LOCALSTACK_AUTH_TOKEN ?= 
 
 deploy-platform:
 	cd platform; \
@@ -29,3 +30,6 @@ destroy-application:
 destroy-platform:
 	cd platform; \
 	TF_VAR_aws_profile=$(AWS_PROFILE) terraform destroy $(AUTO_APPROVE);
+
+replicate:
+	AWS_PROFILE=$(AWS_PROFILE) LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) ./replicate.sh
