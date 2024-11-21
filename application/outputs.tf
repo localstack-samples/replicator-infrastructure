@@ -1,3 +1,3 @@
 output "apigateway_url" {
-  value = module.api_gateway.stage_invoke_url
+  value = "http://${module.api_gateway.api_id}.execute-api.localhost:4566"
 }

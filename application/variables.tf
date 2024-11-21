@@ -17,8 +17,3 @@ variable "private_subnets" {
   type        = list(string)
   description = "List of private subnets where to deploy the application"
 }
-
-variable "public_subnets" {
-  type        = list(string)
-  description = "List of public subnets where to deploy the application"
-}
