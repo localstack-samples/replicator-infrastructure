@@ -26,9 +26,6 @@ wait_for_job() {
     python -m localstack.pro.core.replicator state --follow $1
 }
 
-instruction "Restarting Localstack"
-ls-restart
-
 instruction "Getting account id and region"
 region=$(aws configure get region)
 accountId=$(aws sts get-caller-identity --query Account --output text)
