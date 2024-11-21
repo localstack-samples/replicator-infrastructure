@@ -83,6 +83,8 @@ export class ReplicatorDemo extends Stack {
       method: HttpMethod.ANY,
     });
 
+
+
     const httpApi = new HttpApi(this, "Api", {});
     httpApi.addRoutes({
       path: "/{proxy+}",
