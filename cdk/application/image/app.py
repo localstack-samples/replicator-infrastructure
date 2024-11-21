@@ -9,7 +9,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         response_payload = {
             "status": "ok",
-            "value": 42,
+            "message": "I am running in a replicated environment",
         }
         print("Handling GET request")
         self.send_response(200)
