@@ -1,0 +1,2 @@
+-e ../localstack-ext/localstack-pro-core
+boto3
