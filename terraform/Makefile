@@ -20,7 +20,6 @@ destroy-application-aws:
 
 deploy-application:
 	cd application; \
-	tflocal init; \
 	TF_WORKSPACE=local TF_VAR_aws_profile=$(LOCAL_AWS_PROFILE) tflocal apply $(AUTO_APPROVE);
 
 destroy-application:

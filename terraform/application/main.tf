@@ -1,7 +1,50 @@
 locals {
   name           = "ecs-application"
   container_name = "application"
-  container_port = 80
+  container_port = 3000
+  host_port      = 80
+
+  image_path = "${path.module}/../../image"
+  image_sha  = sha1(join("", [for f in fileset(local.image_path, ".*") : filesha1(f)]))
+}
+
+
+################################################################################
+# ECR Repository
+################################################################################
+
+# Create an ECR repository
+resource "aws_ecr_repository" "app_ecr_repo" {
+  name         = "application-repo"
+  force_delete = true
+}
+
+resource "docker_image" "application_image" {
+  name = "application"
+  build {
+    context = local.image_path
+  }
+
+  triggers = {
+    dir_sha1 = local.image_sha
+  }
+
+}
+
+resource "docker_tag" "application_latest" {
+  source_image = docker_image.application_image.name
+  target_image = aws_ecr_repository.app_ecr_repo.repository_url
+}
+
+resource "terraform_data" "docker-push" {
+  provisioner "local-exec" {
+    command = "docker push ${docker_tag.application_latest.target_image}"
+  }
+
+  depends_on = [docker_tag.application_latest]
+  triggers_replace = {
+    dir_sha1 = local.image_path
+  }
 }
 
 ################################################################################
@@ -33,12 +76,12 @@ module "ecs_cluster" {
           cpu       = 512
           memory    = 1024
           essential = true
-          image     = "ealen/echo-server"
+          image     = "000000000000.dkr.ecr.us-east-1.localhost.localstack.cloud:4566/application-repo:latest"
           port_mappings = [
             {
               name          = local.container_name
               containerPort = local.container_port
-              hostPort      = local.container_port
+              hostPort      = local.host_port
               protocol      = "tcp"
               app_protocol  = "http"
             }
@@ -76,6 +119,7 @@ module "ecs_cluster" {
       }
     }
   }
+  depends_on = [docker_tag.application_latest, terraform_data.docker-push]
 }
 
 module "alb" {

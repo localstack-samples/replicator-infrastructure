@@ -41,7 +41,7 @@ export class ReplicatorDemo extends Stack {
         memoryLimitMiB: 2048,
         desiredCount: 1,
         taskImageOptions: {
-          image: ContainerImage.fromAsset("./image"),
+          image: ContainerImage.fromAsset("../../image"),
           containerPort: backendPort,
           environment: {
             BACKEND_PORT: backendPort.toString(),

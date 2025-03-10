@@ -12,7 +12,12 @@ cdk.out
 
 ### Terraform ###
 # Local .terraform directories
-**/.terraform/*
+.terraformrc
+terraform.rc
+.terraform
+terraform.tfstate*
+terraform.tfvars
+.terraform.lock*
 
 # .tfstate files
 *.tfstate
@@ -43,12 +48,7 @@ override.tf.json
 # example: *tfplan*
 
 # Ignore CLI configuration files
-.terraformrc
-terraform.rc
+
 
 # End of https://www.toptal.com/developers/gitignore/api/terraform
 cdk/platform/outputs.json
-.terraform
-terraform.tfstate*
-terraform.tfvars
-.terraform.lock*
