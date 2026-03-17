@@ -18,9 +18,7 @@ The sample includes two variants:
 - `terraform/`: platform and application stacks with Terraform
 - `cdk/`: platform and application stacks with AWS CDK
 
-AWS Replicator documentation:
-
-- https://docs.localstack.cloud/aws/tooling/aws-replicator/
+This sample application uses LocalStack's [AWS Replicator](https://docs.localstack.cloud/aws/tooling/aws-replicator/) feature.
 
 ## Prerequisites
 
@@ -30,11 +28,14 @@ AWS Replicator documentation:
 - Terraform CLI.
 - Docker.
 - Two configured AWS profiles:
-- one for LocalStack access (default: `localstack` for Terraform and `local` in `cdk/Makefile`)
-- one for AWS deployment (default: `ls-sandbox`)
+  - one for LocalStack access (default: `localstack` for Terraform and `local` in `cdk/Makefile`)
+  - one for AWS deployment (default: `ls-sandbox`)
+
+To start LocalStack, run the following:
 
 ```bash
 export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
+make start
 ```
 
 ## Terraform Workflow
@@ -114,13 +115,9 @@ make deploy-application
 
 The `replicate_cdk.sh` script reads `PlatformStack` outputs, starts replicator jobs, and waits until replication is completed.
 
-## LocalStack Management
-
-Use the root `Makefile` for LocalStack lifecycle commands only. The Terraform and CDK directories keep their own deployment Makefiles.
-
 ## Cleanup
 
-Terraform:
+### Terraform
 
 ```bash
 cd terraform
@@ -128,10 +125,14 @@ make destroy-application
 make destroy-platform-aws
 ```
 
-CDK:
+### CDK
 
 ```bash
 cd cdk
 make destroy-application
 make destroy-platform
 ```
+
+## License
+
+Licensed under Apache License 2.0. See [LICENSE](LICENSE).
