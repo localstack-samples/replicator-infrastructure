@@ -5,7 +5,8 @@
 | Environment | LocalStack and AWS |
 | Services | VPC, Subnet, ALB, ECS Fargate, API Gateway, ECR, SQS |
 | Integrations | Terraform and AWS CDK |
-| Focus | Replicating AWS network resources into LocalStack by keeping resource IDs |
+| Categories | AWS Replication | 
+| Level | Beginner |
 | GitHub | https://github.com/localstack-samples/replicator-infrastructure |
 
 ## Introduction
