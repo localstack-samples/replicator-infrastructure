@@ -14,26 +14,24 @@ check: ## Check if required prerequisites are installed
 	@command -v terraform > /dev/null 2>&1 || { echo "Terraform is not installed. Please install Terraform and try again."; exit 1; }
 	@command -v jq > /dev/null 2>&1 || { echo "jq is not installed. Please install jq and try again."; exit 1; }
 	@command -v localstack > /dev/null 2>&1 || { echo "LocalStack CLI is not installed. Run 'make install' or install it manually."; exit 1; }
-	@command -v awslocal > /dev/null 2>&1 || { echo "awslocal is not installed. Run 'make install' or install it manually."; exit 1; }
+	@command -v lstk > /dev/null 2>&1 || { echo "lstk is not installed. Run 'make install' or install it manually."; exit 1; }
 	@echo "All required prerequisites are available."
 
-install: ## Install LocalStack and awslocal dependencies
+install: ## Install LocalStack and lstk dependencies
 	@command -v python3 > /dev/null 2>&1 || { echo "Python 3 is not installed. Please install Python 3 and try again."; exit 1; }
-	@python3 -m pip install --user --upgrade localstack awscli-local
-	@echo "Installed/updated LocalStack CLI and awslocal."
-	@echo "If 'localstack' or 'awslocal' are not found, add your Python user bin directory to PATH."
+	@python3 -m pip install --user --upgrade localstack
+	@npm install -g @localstack/lstk
+	@echo "Installed/updated LocalStack CLI and lstk."
+	@echo "If 'localstack' or 'lstk' are not found, add your Python user bin directory (and npm global bin) to PATH."
 
 start: ## Start LocalStack
 	@test -n "${LOCALSTACK_AUTH_TOKEN}" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Find your token at https://app.localstack.cloud/workspace/auth-token"; exit 1)
-	@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) localstack start -d
+	@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) lstk start
 
 stop: ## Stop LocalStack
-	@localstack stop
-
-ready: ## Wait until LocalStack is ready
-	@localstack wait -t 30 && echo LocalStack is ready to use! || (echo Gave up waiting on LocalStack, exiting. && exit 1)
+	@lstk stop
 
 logs: ## Retrieve LocalStack logs
-	@localstack logs > logs.txt
+	@lstk logs > logs.txt
 
-.PHONY: usage check install start stop ready logs
+.PHONY: usage check install start stop logs
