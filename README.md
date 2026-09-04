@@ -22,9 +22,10 @@ This sample application uses LocalStack's [AWS Replicator](https://docs.localsta
 
 ## Prerequisites
 
-- A valid [LocalStack for AWS license](https://localstack.cloud/pricing), which provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/).
-- LocalStack CLI v4.2.0 or higher.
-- `awslocal` (`awscli-local`).
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing), which provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/aws/getting-started/auth-token/).
+- LocalStack CLI v4.2.0 or higher (needed for `localstack replicator`, which has no `lstk` equivalent).
+- [`lstk` CLI](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/), installed via `npm install -g @localstack/lstk` or `brew install localstack/tap/lstk`.
+- AWS CLI, required by `lstk aws`.
 - Terraform CLI.
 - Docker.
 - Two configured AWS profiles:
