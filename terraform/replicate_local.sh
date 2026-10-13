@@ -10,6 +10,7 @@ ENDPOINT=${ENDPOINT:-http://localhost.localstack.cloud:4566}
 # The replication job runs inside the LocalStack container, so it reads the source from there
 SOURCE_ENDPOINT=${SOURCE_ENDPOINT:-http://localhost:4566}
 PLATFORM_ACCOUNT_ID=${PLATFORM_ACCOUNT_ID:-111111111111}
+TARGET_ACCOUNT_ID=${TARGET_ACCOUNT_ID:-000000000000}
 REGION=${AWS_DEFAULT_REGION:-us-east-1}
 TFVARS=${TFVARS:-application/terraform.tfvars}
 MAX_ATTEMPTS=${MAX_ATTEMPTS:-60}
@@ -25,13 +26,14 @@ fi
 replicate() {
   local payload job job_id state
   payload=$(jq -n --arg type "$1" --arg id "$2" --arg account "$PLATFORM_ACCOUNT_ID" \
-    --arg region "$REGION" --arg endpoint "$SOURCE_ENDPOINT" '{
+    --arg target "$TARGET_ACCOUNT_ID" --arg region "$REGION" --arg endpoint "$SOURCE_ENDPOINT" '{
       replication_type: "SINGLE_RESOURCE",
       replication_job_config: {resource_type: $type, resource_identifier: $id},
       source_aws_config: {
         aws_access_key_id: $account, aws_secret_access_key: "test",
         region_name: $region, endpoint_url: $endpoint
-      }
+      },
+      target_aws_config: {aws_access_key_id: $target, aws_secret_access_key: "test", region_name: $region}
     }')
   job=$(curl -sf -X POST "$ENDPOINT/_localstack/replicator/jobs" -H 'Content-Type: application/json' -d "$payload")
   job_id=$(echo "$job" | jq -r .job_id)
