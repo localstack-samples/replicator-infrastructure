@@ -2,7 +2,6 @@ locals {
   name           = "ecs-application"
   container_name = "application"
   container_port = 3000
-  host_port      = 80
 
   image_path = "${path.module}/../../image"
   image_sha  = sha1(join("", [for f in fileset(local.image_path, ".*") : filesha1(f)]))
@@ -82,7 +81,7 @@ module "ecs_cluster" {
             {
               name          = local.container_name
               containerPort = local.container_port
-              hostPort      = local.host_port
+              hostPort      = local.container_port
               protocol      = "tcp"
               app_protocol  = "http"
             }
