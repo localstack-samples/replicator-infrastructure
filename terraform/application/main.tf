@@ -52,7 +52,8 @@ resource "terraform_data" "docker-push" {
 ################################################################################
 
 module "ecs_cluster" {
-  source = "terraform-aws-modules/ecs/aws"
+  source  = "terraform-aws-modules/ecs/aws"
+  version = "~> 5.12"
 
   cluster_name = local.name
 
@@ -204,7 +205,8 @@ module "api_gateway_security_group" {
 }
 
 module "api_gateway" {
-  source = "terraform-aws-modules/apigateway-v2/aws"
+  source  = "terraform-aws-modules/apigateway-v2/aws"
+  version = "~> 5.3"
 
   # API
   name = local.name

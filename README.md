@@ -29,7 +29,7 @@ This sample application uses LocalStack's [AWS Replicator](https://docs.localsta
 - Terraform CLI.
 - Docker.
 - Two configured AWS profiles:
-  - one for LocalStack access (default: `localstack` for Terraform and `local` in `cdk/Makefile`)
+  - one for LocalStack access (default: `localstack` for Terraform, created by `lstk setup aws`, and `local` in `cdk/Makefile`)
   - one for AWS deployment (default: `ls-sandbox`)
 
 To start LocalStack, run the following:
@@ -86,32 +86,57 @@ AWS_PROFILE=ls-sandbox localstack replicator start --resource-identifier <subnet
 make deploy-application
 ```
 
+### Without an AWS account
+
+You can run the same workflow with a second LocalStack account standing in for the AWS account that owns the platform. The platform goes to account `111111111111` (set `PLATFORM_ACCOUNT_ID` to change it), and the Replicator copies the VPC and subnets from there into the default account `000000000000`, where the application is deployed.
+
+```bash
+make deploy-platform-local   # deploy the VPC into account 111111111111
+make deploy-application      # fails: the VPC and subnets are not in account 000000000000 yet
+make replicate-local         # replicate the VPC and private subnets into account 000000000000
+make deploy-application      # succeeds
+make test
+```
+
+`make replicate-local` runs `replicate_local.sh`, which calls the [Replicator HTTP API](https://docs.localstack.cloud/aws/developer-tools/aws-replicator/#using-the-http-api) with `source_aws_config.endpoint_url` pointing at LocalStack, because `localstack replicator start` always reads from AWS.
+
+### Test the deployment
+
+`make test` checks that:
+
+- the VPC and private subnets in the application account have the same IDs, CIDRs and availability zones as in the platform account
+- the ECS service runs its task
+- the internal ALB and the HTTP API, through its VPC link, return the application's response
+- an event posted to the REST API reaches the `my-queue` SQS queue
+
+The network check compares against the platform account in LocalStack, so `make test` belongs to the workflow without an AWS account. CI runs that workflow on every pull request.
+
 ## CDK Workflow
 
-Run commands from `cdk/`.
+Run commands from the repository root with `make -f cdk/Makefile <target>`, since the targets use paths such as `cdk/platform` and `./replicate_cdk.sh`.
 
 1. Deploy platform resources to AWS:
 
 ```bash
-make deploy-platform
+make -f cdk/Makefile deploy-platform
 ```
 
 2. Bootstrap CDK in LocalStack:
 
 ```bash
-make bootstrap
+make -f cdk/Makefile bootstrap
 ```
 
 3. Replicate VPC and subnet resources from the platform stack:
 
 ```bash
-make replicate
+make -f cdk/Makefile replicate
 ```
 
 4. Deploy the application stack to LocalStack:
 
 ```bash
-make deploy-application
+make -f cdk/Makefile deploy-application
 ```
 
 The `replicate_cdk.sh` script reads `PlatformStack` outputs, starts replicator jobs, and waits until replication is completed.
@@ -123,15 +148,14 @@ The `replicate_cdk.sh` script reads `PlatformStack` outputs, starts replicator j
 ```bash
 cd terraform
 make destroy-application
-make destroy-platform-aws
+make destroy-platform-aws    # or make destroy-platform-local
 ```
 
 ### CDK
 
 ```bash
-cd cdk
-make destroy-application
-make destroy-platform
+make -f cdk/Makefile destroy-application
+make -f cdk/Makefile destroy-platform
 ```
 
 ## License
