@@ -1,0 +1,75 @@
+name: Deploy on LocalStack
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Replicate the platform and deploy the application with Terraform
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Install lstk
+        run: |
+          npm install -g @localstack/lstk
+          lstk setup aws --force --non-interactive
+
+      - name: Start LocalStack
+        env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+        run: lstk start
+
+      # A second LocalStack account stands in for the AWS account that owns the platform
+      - name: Deploy the platform
+        run: make deploy-platform-local
+
+      - name: Deploy the application before replication, which must fail on the missing network
+        run: |
+          if make deploy-application > first-deploy.log 2>&1; then
+            cat first-deploy.log
+            echo "The deploy succeeded although the platform VPC and subnets are not in the application account yet"
+            exit 1
+          fi
+          vpc_id=$(sed -n 's/^vpc_id *= *"\(.*\)"/\1/p' application/terraform.tfvars)
+          grep -E "NotFound|not found|does not exist" first-deploy.log | grep -E "$vpc_id|subnet-" \
+            || { cat first-deploy.log; echo "The deploy failed for another reason"; exit 1; }
+
+      - name: Replicate the VPC and subnets
+        run: make replicate-local
+
+      - name: Deploy the application
+        run: make deploy-application
+
+      - name: Run tests
+        run: make test
+
+      - name: Show LocalStack logs
+        if: failure()
+        run: lstk logs | tail -300

@@ -84,9 +84,7 @@ resource "aws_api_gateway_integration" "hce-search-event-public-post-integration
   ## Convert the map to a JSON string
   request_templates = {
     "application/json" = <<EOF
-#set($inputRoot = $input.path('$'))
-#set($map = $input.json())
-Action=SendMessage&MessageBody="$map"
+Action=SendMessage&MessageBody=$util.urlEncode($input.json('$'))
 EOF
   }
 

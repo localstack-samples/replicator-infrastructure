@@ -2,7 +2,6 @@ locals {
   name           = "ecs-application"
   container_name = "application"
   container_port = 3000
-  host_port      = 80
 
   image_path = "${path.module}/../../image"
   image_sha  = sha1(join("", [for f in fileset(local.image_path, ".*") : filesha1(f)]))
@@ -52,7 +51,8 @@ resource "terraform_data" "docker-push" {
 ################################################################################
 
 module "ecs_cluster" {
-  source = "terraform-aws-modules/ecs/aws"
+  source  = "terraform-aws-modules/ecs/aws"
+  version = "~> 5.12"
 
   cluster_name = local.name
 
@@ -81,7 +81,7 @@ module "ecs_cluster" {
             {
               name          = local.container_name
               containerPort = local.container_port
-              hostPort      = local.host_port
+              hostPort      = local.container_port
               protocol      = "tcp"
               app_protocol  = "http"
             }
@@ -204,7 +204,8 @@ module "api_gateway_security_group" {
 }
 
 module "api_gateway" {
-  source = "terraform-aws-modules/apigateway-v2/aws"
+  source  = "terraform-aws-modules/apigateway-v2/aws"
+  version = "~> 5.3"
 
   # API
   name = local.name
